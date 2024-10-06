@@ -20,11 +20,13 @@ import cors from "cors";
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.send("Hello world");
+app.get("/", (_, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
 
+import { readFileSync } from "fs";
 import zod from "zod";
 
 const signupSchema = zod.object({
@@ -56,11 +58,11 @@ app.post("/signup", (req, res) => {
     res.status(400).send({ error: "url already taken" });
 
   db.run("INSERT INTO urls VALUES (?, ?)", [body.data.origin, shortCode]);
-  res.send({
-    shortCode,
-    shortUrl: `${baseUrl}/${shortCode}`,
-    originUrl: body.data.origin,
-  });
+  let html = readFileSync(__dirname + "/signup.html", "utf8");
+  html = html.replaceAll("{original}", body.data.origin);
+  html = html.replaceAll("{shortened}", `${baseUrl}/${shortCode}`);
+
+  res.send(html);
 });
 
 app.get("/*", (req, res) => {

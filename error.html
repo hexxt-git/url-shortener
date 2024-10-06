@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        body{
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .block-container {
+            width: 400px;
+            max-width: 95vw;
+            padding: 25px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
+        }
+        .block-group {
+            margin-bottom: 15px;
+        }
+        li{
+            margin-left: 15px;
+        }
+        .btn {
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 5px;
+            width: 100%;
+            display: block;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2>URL Shortener</h2>
+    <div class="block-container">
+        <div class="block-group">
+            <li>
+                an error has occurred
+            </li>
+        </div>
+        <div class="block-group">
+            {error}
+        </div>
+        <a class="btn" href="/" target="_blank">Shorten another link</button>
+    </dib>
+</body>
+</html>

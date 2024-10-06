@@ -1,18 +1,10 @@
-import { Database } from "bun:sqlite";
+import { createClient } from "redis";
 
-const db = new Database("database.sqlite");
+const db = await createClient()
+  .on("error", (err) => console.log("Redis Client Error", err))
+  .connect();
 
-if (
-  !db
-    .query('SELECT name FROM sqlite_master WHERE type="table" AND name="urls"')
-    .get("urls")
-) {
-  db.run("CREATE TABLE urls (origin TEXT, short TEXT)");
-  console.log("table created");
-  db.run("INSERT INTO urls VALUES (?, ?)", ["https://www.youtube.com", "yt"]);
-} else {
-  console.log("table found");
-}
+console.log("db connected");
 
 import express from "express";
 import cors from "cors";
@@ -34,7 +26,7 @@ const signupSchema = zod.object({
   short: zod.string().optional(),
 });
 
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
   const body = signupSchema.safeParse(req.body);
 
   if (body.error) {
@@ -51,13 +43,11 @@ app.post("/signup", (req, res) => {
       .toString(36)
       .slice(0, 6);
   }
-  const existing_entry = db
-    .query(`SELECT * FROM urls WHERE short=?`)
-    .get(shortCode);
+  const existing_entry = await db.get(shortCode);
   if (existing_entry != null)
     res.status(400).send({ error: "url already taken" });
 
-  db.run("INSERT INTO urls VALUES (?, ?)", [body.data.origin, shortCode]);
+  await db.set(shortCode, body.data.origin);
   let html = readFileSync(__dirname + "/signup.html", "utf8");
   html = html.replaceAll("{original}", body.data.origin);
   html = html.replaceAll("{shortened}", `${baseUrl}/${shortCode}`);
@@ -65,18 +55,16 @@ app.post("/signup", (req, res) => {
   res.send(html);
 });
 
-app.get("/*", (req, res) => {
+app.get("/*", async (req, res) => {
   const shortCode = req.url.slice(1);
   console.log(shortCode);
-  const query = db
-    .query(`SELECT origin FROM urls WHERE short=?`)
-    .get(shortCode) as { origin: string } | null;
+  const query = await db.get(shortCode);
   if (!query) {
     res.status(404).send();
     return;
   }
 
-  res.redirect(query.origin);
+  res.redirect(query);
 });
 
 const baseUrl = "http://localhost:8000";

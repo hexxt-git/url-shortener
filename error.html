@@ -25,8 +25,12 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
         }
-        .block-group {
-            margin-bottom: 15px;
+        .error {
+            background-color: #febcc5;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+            text-align: center;
         }
         li{
             margin-left: 15px;
@@ -42,8 +46,9 @@
             border: none;
             cursor: pointer;
             text-decoration: none;
+            text-align: center;
         }
-        .btn {
+        .btn:hover {
             background-color: #45a049;
         }
     </style>
@@ -51,15 +56,13 @@
 <body>
     <h2>URL Shortener</h2>
     <div class="block-container">
-        <div class="block-group">
-            <li>
-                an error has occurred
-            </li>
-        </div>
+        <h3 class="error">
+            an error has occurred
+        </h3>
         <div class="block-group">
             {error}
         </div>
-        <a class="btn" href="/" target="_blank">Shorten another link</button>
+        <a class="btn" href="/">Shorten another link</button>
     </dib>
 </body>
 </html>

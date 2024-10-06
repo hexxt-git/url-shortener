@@ -27,32 +27,39 @@ const signupSchema = zod.object({
 });
 
 app.post("/signup", async (req, res) => {
-  const body = signupSchema.safeParse(req.body);
+  try {
+    const body = signupSchema.safeParse(req.body);
 
-  if (body.error) {
-    res.status(400).send({ error: body.error });
-    return;
+    if (body.error) {
+      throw new Error(body.error.message);
+    }
+
+    let shortCode: string | null = null;
+    if (body.data.short) {
+      shortCode = body.data.short;
+    } else {
+      // creating a salted hash
+      shortCode = Bun.hash(body.data.origin + Math.random().toString())
+        .toString(36)
+        .slice(0, 6);
+    }
+
+    const existing_entry = await db.get(shortCode);
+    if (existing_entry != null) {
+      throw new Error("URL already taken");
+    }
+
+    await db.set(shortCode, body.data.origin);
+    let html = readFileSync(__dirname + "/signup.html", "utf8");
+    html = html.replaceAll("{original}", body.data.origin);
+    html = html.replaceAll("{shortened}", `${baseUrl}/${shortCode}`);
+
+    res.send(html);
+  } catch (error) {
+    let html = readFileSync(__dirname + "/error.html", "utf8");
+    html = html.replaceAll("{error}", (error as Error).message);
+    res.status(400).send(html);
   }
-
-  let shortCode: string | null = null;
-  if (body.data.short) {
-    shortCode = body.data.short;
-  } else {
-    // creating a salted hash
-    shortCode = Bun.hash(body.data.origin + Math.random().toString())
-      .toString(36)
-      .slice(0, 6);
-  }
-  const existing_entry = await db.get(shortCode);
-  if (existing_entry != null)
-    res.status(400).send({ error: "url already taken" });
-
-  await db.set(shortCode, body.data.origin);
-  let html = readFileSync(__dirname + "/signup.html", "utf8");
-  html = html.replaceAll("{original}", body.data.origin);
-  html = html.replaceAll("{shortened}", `${baseUrl}/${shortCode}`);
-
-  res.send(html);
 });
 
 app.get("/*", async (req, res) => {
